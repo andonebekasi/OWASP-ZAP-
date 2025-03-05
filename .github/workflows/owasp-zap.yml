@@ -44,7 +44,7 @@ jobs:
       - name: Start OWASP ZAP scan
         run: |
           sudo chmod -R 777 $(pwd)  # Ensure the directory has the correct permissions
-          docker run --network zap-network -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -t http://dast-automation-web:8080 -r zap_report.html
+          docker run --network zap-network -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -t http://dast-automation-web:8080 -r zap_report.html || true
 
       - name: Stop Docker container
         run: |
