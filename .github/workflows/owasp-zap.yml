@@ -32,36 +32,35 @@ jobs:
 
       - name: Install OWASP ZAP CLI
         run: |
-# Update package list and install dependencies
-apt-get update
-apt-get install -y wget unzip python3 python3-pip
+          # Update package list and install dependencies
+          apt-get update
+          apt-get install -y wget unzip python3 python3-pip
 
-# Define the URL for the ZAP download
-ZAP_URL="https://github.com/zaproxy/zaproxy/releases/download/w2025-03-04/ZAP_WEEKLY_D-2025-03-04.zip"
+          # Define the URL for the ZAP download
+          ZAP_URL="https://github.com/zaproxy/zaproxy/releases/download/w2025-03-04/ZAP_WEEKLY_D-2025-03-04.zip"
 
-# Download the ZAP zip file
-wget $ZAP_URL -O zap-weekly.zip
+          # Download the ZAP zip file
+          wget $ZAP_URL -O zap-weekly.zip
 
-# Check if the download was successful
-if [ $? -eq 0 ]; then
-  # Extract the zip file
-  unzip zap-weekly.zip -d zap-weekly
-  export ZAP_HOME=$(pwd)/zap-weekly/ZAP_D-2025-03-04
-  export PATH=$ZAP_HOME:$PATH
-else
-  echo "Failed to download ZAP from $ZAP_URL"
-  exit 1
-fi
+          # Check if the download was successful
+          if [ $? -eq 0 ]; then
+            # Extract the zip file
+            unzip zap-weekly.zip -d zap-weekly
+            export ZAP_HOME=$(pwd)/zap-weekly/ZAP_D-2025-03-04
+            export PATH=$ZAP_HOME:$PATH
+          else
+            echo "Failed to download ZAP from $ZAP_URL"
+            exit 1
+          fi
 
-# Install zap-cli
-pip3 install zap-cli
+          # Install zap-cli
+          pip3 install zap-cli
 
-# Run the ZAP scan
-zap-cli quick-scan --self-contained --start-url http://localhost:8081
       - name: Start OWASP ZAP scan
         run: |
-          zap-cli quick-scan --self-contained --start-url http://localhost:8081
+          zap-cli quick-scan --self-contained --start-url http://localhost:8080
 
       - name: Stop Docker container
         run: |
           docker stop dast-automation-web
+          docker rm dast-automation-web
