@@ -27,7 +27,8 @@ jobs:
       - name: Run Flask app in Docker
         run: |
           cd app
-          docker run -d -p 8080:8080 --name dast-automation-web dast-automation-web
+          docker network create zap-network
+          docker run -d --network zap-network --name dast-automation-web dast-automation-web
           sleep 30  # Wait for the application to be ready
 
       - name: Log in to Docker Hub
@@ -43,12 +44,13 @@ jobs:
       - name: Start OWASP ZAP scan
         run: |
           sudo chmod -R 777 $(pwd)  # Ensure the directory has the correct permissions
-          docker run -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -t http://host.docker.internal:8080 -r zap_report.html
+          docker run --network zap-network -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -t http://dast-automation-web:8080 -r zap_report.html
 
       - name: Stop Docker container
         run: |
           docker stop dast-automation-web
           docker rm dast-automation-web
+          docker network rm zap-network
 
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
