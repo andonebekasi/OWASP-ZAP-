@@ -30,12 +30,16 @@ jobs:
           docker run -d -p 8080:8080 --name dast-automation-web dast-automation-web
           sleep 10  # Wait for the application to be ready
 
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_USERNAME }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
       - name: Pull OWASP ZAP Docker image
-        run: docker pull owasp/zap2docker-weekly
+        run: docker pull owasp/zap2docker-stable
 
       - name: Start OWASP ZAP scan
         run: |
-          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-weekly zap-baseline.py -t http://localhost:8080 -r zap_report.html
+          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html
 
       - name: Stop Docker container
         run: |
