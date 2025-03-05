@@ -38,11 +38,11 @@ jobs:
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
       - name: Pull OWASP ZAP Docker image
-        run: docker pull owasp/zap2docker-stable
+        run: docker pull ictu/zap2docker-weekly
 
       - name: Start OWASP ZAP scan
         run: |
-          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080 -r zap_report.html
+          docker run -v $(pwd):/zap/wrk/:rw -t ictu/zap2docker-weekly zap-baseline.py -t http://localhost:8080 -r zap_report.html
 
       - name: Stop Docker container
         run: |
