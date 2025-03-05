@@ -32,11 +32,10 @@ jobs:
 
       - name: Install OWASP ZAP CLI
         run: |
-          curl -sSL https://github.com/zaproxy/zaproxy/releases/download/v2.11.0/ZAP_2.11.0_Linux.tar.gz -o zap-2.11.0-linux.tar.gz
-          tar -xzvf zap-2.11.0-linux.tar.gz
-          export ZAP_HOME=$(pwd)/zap-2.11.0
-          export PATH=$ZAP_HOME:$PATH
-
+         curl -sSL https://github.com/zaproxy/zaproxy/releases/download/v2.12.0/ZAP_2.12.0_Linux.tar.gz -o zap-2.12.0-linux.tar.gz
+         tar -xzvf zap-2.12.0-linux.tar.gz
+         export ZAP_HOME=$(pwd)/zap-2.12.0
+         export PATH=$ZAP_HOME:$PATH
       - name: Start OWASP ZAP scan
         run: |
           zap-cli quick-scan --self-contained --start-url http://localhost:8081
