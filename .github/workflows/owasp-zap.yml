@@ -1,35 +1,45 @@
-name: DAST Automation
+name: OWASP ZAP Scan
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  dast-scan:
+  build-and-scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Build and run Flask app
+      - name: Build Docker image
         run: |
+          cd app
           docker build -t dast-automation-web .
-          docker run -d -p 8081:8081 --name dast-automation-web dast-automation-web
-          sleep 10  # Tunggu aplikasi siap
 
-      - name: Run OWASP ZAP Scan
+      - name: Run Flask app in Docker
         run: |
-          docker run --network=host -v $(pwd):/zap/wrk -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8081 -r zap_report.html
+          cd app
+          docker run -d -p 8080:8080 --name dast-automation-web dast-automation-web
+          sleep 10  # Wait for the application to be ready
 
-      - name: Upload OWASP ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap_report.html
+      - name: Install OWASP ZAP CLI
+        run: |
+          curl -sSL https://github.com/zaproxy/zaproxy/releases/download/v2.11.0/zap-2.11.0-linux.tar.gz | tar -xz
+          export ZAP_HOME=$(pwd)/zap-2.11.0
+          export PATH=$ZAP_HOME:$PATH
+
+      - name: Start OWASP ZAP scan
+        run: |
+          zap-cli quick-scan --self-contained --start-url http://localhost:8081
+
+      - name: Stop Docker container
+        run: |
+          docker stop dast-automation-web
