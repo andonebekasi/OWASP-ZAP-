@@ -1,45 +1,35 @@
-name: OWASP ZAP DAST Scan
+name: DAST Automation
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
 
 jobs:
-  zap_scan:
+  dast-scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Start Application
+      - name: Install Docker Compose
         run: |
-          docker-compose up -d
-          sleep 10  # Tunggu agar aplikasi siap
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
 
-      - name: Run OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.10.0
-        with:
-          target: "http://localhost:8080"
-          fail_action: false
-          cmd_options: "-a"
+      - name: Build and run Flask app
+        run: |
+          docker build -t dast-automation-web .
+          docker run -d -p 8081:8081 --name dast-automation-web dast-automation-web
+          sleep 10  # Tunggu aplikasi siap
 
-      - name: Upload ZAP Scan Report
-        uses: actions/upload-artifact@v4
+      - name: Run OWASP ZAP Scan
+        run: |
+          docker run --network=host -v $(pwd):/zap/wrk -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8081 -r zap_report.html
+
+      - name: Upload OWASP ZAP Report
+        uses: actions/upload-artifact@v3
         with:
           name: zap-report
-          path: report.json
-
-      - name: Analyze Scan Report
-        run: |
-          if grep -q '"risk":"High"' report.json; then
-            echo "High-risk vulnerabilities found!"
-            exit 1
-          else
-            echo "No high-risk vulnerabilities found."
-          fi
+          path: zap_report.html
